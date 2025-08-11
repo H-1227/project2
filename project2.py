@@ -1,6 +1,6 @@
 import hashlib
 import os
-from typing import Tuple, Optiona
+from typing import Tuple, Optiona, Optional
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,13 +10,13 @@ from scipy.fftpack import dct, idct
 
 class WatermarkDetector:
     def __init__(self, secret_key: str = "default_key", alpha: float = 0.05):
-        """初始化水印检测器"""
+        # 初始化水印检测器
         self.secret_key = secret_key
         self.alpha = alpha  # 水印强度，值越大鲁棒性越强但可见性越高
         self.rng = np.random.RandomState(int(hashlib.md5(secret_key.encode()).hexdigest(), 16))
 
     def _generate_watermark(self, shape: Tuple[int, int], bits: int = 256) -> np.ndarray:
-        """生成伪随机水印图案"""
+        # 生成伪随机水印图案
         watermark = np.zeros(shape, dtype=np.float32)
         # 选择非直流分量区域嵌入水印
         valid_positions = []
@@ -63,7 +63,7 @@ class WatermarkDetector:
         print(f"水印已嵌入并保存至: {output_path}")
 
     def _embed_dct(self, img: np.ndarray, bits: int) -> np.ndarray:
-        """在DCT域嵌入水印"""
+        # 在DCT域嵌入水印
         h, w = img.shape
         # 确保尺寸是8的倍数（DCT处理块大小）
         h = h - (h % 8)
@@ -91,7 +91,7 @@ class WatermarkDetector:
         return np.clip(watermarked, 0, 255).astype(np.uint8)
 
     def _embed_lsb(self, img: np.ndarray, bits: int) -> np.ndarray:
-        """在LSB（最低有效位）嵌入水印"""
+        # 在LSB（最低有效位）嵌入水印
         h, w = img.shape
         watermark = self._generate_watermark((h, w), bits)
 
@@ -148,7 +148,7 @@ class WatermarkDetector:
             raise ValueError("支持的提取方法: 'dct' 或 'lsb'")
 
     def _extract_dct(self, watermarked: np.ndarray, original: Optional[np.ndarray], bits: int) -> np.ndarray:
-        """从DCT域提取水印"""
+        # 从DCT域提取水印
         h, w = watermarked.shape
         h = h - (h % 8)
         w = w - (w % 8)
@@ -186,7 +186,7 @@ class WatermarkDetector:
         return extracted
 
     def _extract_lsb(self, watermarked: np.ndarray, bits: int) -> np.ndarray:
-        """从LSB提取水印"""
+        # 从LSB提取水印
         h, w = watermarked.shape
         watermark_template = self._generate_watermark((h, w), bits)
 
@@ -201,7 +201,6 @@ class WatermarkDetector:
         return extracted
 
     def calculate_similarity(self, original_watermark: np.ndarray, extracted_watermark: np.ndarray) -> float:
-        """计算原始水印与提取水印的相似度（归一化相关系数）"""
         # 只考虑有效水印位置
         mask = (original_watermark != 0)
         orig = original_watermark[mask]
